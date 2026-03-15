@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Evan Biordi</title>
+
+  <style>
+
+    /* ============================================================
+       RESET
+       Browsers add default margin/padding to elements.
+       This zeroes all of it out so we start from scratch.
+    ============================================================ */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* ============================================================
+       BODY — the base styles everything inherits from
+       Set ONE font, ONE size, ONE color here.
+       Every element on the page will look like this unless
+       you specifically override it below.
+    ============================================================ */
+    body {
+      background: #1700c7;
+      color: #ffffff;
+      font-family: 'Times New Roman', Times, serif;
+      font-size: 1rem;        /* 1rem = 16px by default */
+      line-height: 1.7;
+      text-transform: lowercase;
+      /* height is set by JavaScript to enable native scrolling */
+    }
+
+    /* ============================================================
+       THE 3D SCENE
+       .all        — fullscreen fixed container, centers everything
+       .wrapper3d  — sets up the 3D perspective
+       .fold       — the visible window (like a picture frame)
+       .foldTop    — ghost panel above, hinged at top, folded away
+       .foldBottom — ghost panel below, hinged at bottom, folded away
+       .foldAlign  — shifts the cloned content to line up at the seam
+       .strip      — the scrollable content strip inside each panel
+    ============================================================ */
+
+    .all {
+      position: fixed;   /* stays in place even when page scrolls */
+      inset: 0;          /* shorthand for top/right/bottom/left: 0 */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .wrapper3d {
+      position: relative;
+      perspective: 20vw;             /* how strong the 3D effect looks */
+      transform-style: preserve-3d;  /* lets children exist in 3D space */
+    }
+
+    .fold {
+      overflow: hidden;  /* clips content to the frame */
+      width: 80vw;
+      height: 80vh;
+    }
+
+    .foldBottom {
+      position: absolute;
+      top: 100%;          /* sits right below the main fold */
+      left: 0; right: 0;
+      transform-origin: top center;
+      transform: rotateX(90deg);   /* folded flat, face down */
+    }
+
+    .foldTop {
+      position: absolute;
+      bottom: 100%;       /* sits right above the main fold */
+      left: 0; right: 0;
+      transform-origin: bottom center;
+      transform: rotateX(-90deg);  /* folded flat, face up */
+    }
+
+    .foldAlign {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* shift cloned content so it lines up flush at the fold edge */
+    .foldBottom .foldAlign { transform: translateY(-100%); }
+    .foldTop    .foldAlign { transform: translateY(100%); }
+
+    .strip {
+      width: 100%;
+      will-change: transform; /* hints to browser this will animate */
+    }
+
+    /* ============================================================
+       CONTENT LAYOUT
+       .content    — the readable column, centered with padding
+       header      — name + contact info at the top
+       section     — each resume block (education, work, etc.)
+       h2          — section title with a white line underneath
+       ul / li     — list of items within a section
+       .sub        — a smaller detail line under a list item
+       .skills-wrap / .cat — the skills section layout
+       footer      — the bottom of the page
+    ============================================================ */
+
+    .content {
+      max-width: 860px;
+      margin: 0 auto;
+      /*
+        top padding: 70vh pushes content down so only the h1
+        is visible on load. scroll down to reveal everything.
+        bottom padding: 60vh gives breathing room at the end.
+      */
+      padding: 70vh 4vw 60vh;
+    }
+
+    header {
+      margin-bottom: 4rem;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      font-weight: bold;
+      letter-spacing: 0.05em;
+      line-height: 1.1;
+      margin-bottom: 1rem;
+    }
+
+    /* section gap — consistent everywhere */
+    section {
+      margin-bottom: 3rem;
+    }
+
+    h2 {
+      font-weight: bold;
+      letter-spacing: 0.1em;
+      padding-bottom: 0.4rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid #ffffff;  /* the white divider line */
+    }
+
+    ul {
+      list-style: none;  /* removes bullet points */
+      padding: 0;
+    }
+
+    li {
+      margin-bottom: 1rem;
+    }
+
+    /* the year floats to the right of its list item */
+    li sup {
+      font-size: 1rem;       /* same size as everything else */
+      vertical-align: baseline;
+      float: right;
+    }
+
+    /* sub-detail line, e.g. tools used on a project */
+    .sub {
+      display: block;
+      margin-top: 0.2rem;
+    }
+
+    /* skills section: each category label */
+    .cat {
+      display: block;
+      letter-spacing: 0.1em;
+      margin-top: 1.2rem;
+    }
+    .cat:first-child {
+      margin-top: 0;
+    }
+
+    footer {
+      margin-top: 3rem;
+      letter-spacing: 0.1em;
+    }
+
+  </style>
+</head>
+<body>
+
+<!-- ============================================================
+     THE 3D SCENE
+     Three identical panels stacked in 3D:
+       foldTop    — above, rotated away (floor/ceiling effect)
+       centerFold — what you see straight on
+       foldBottom — below, rotated away
+     All three contain the same content and scroll together.
+============================================================ -->
+<div class="all">
+  <div class="wrapper3d">
+
+    <!-- TOP GHOST PANEL (above the fold, rotated away) -->
+    <div class="fold foldTop">
+      <div class="foldAlign">
+        <div class="strip" id="stripTop"></div>
+      </div>
+    </div>
+
+    <!-- MAIN VISIBLE PANEL -->
+    <div class="fold" id="centerFold">
+      <div class="foldAlign">
+        <div class="strip" id="stripCenter">
+          <div class="content" id="mainContent">
+
+            <!-- ── NAME + CONTACT ── -->
+            <header>
+              <h1>evan biordi</h1>
+              <p>electrical &amp; computer engineering — rutgers university</p>
+              <p>cherry hill / new brunswick, nj</p>
+              <p><a href="mailto:evan.biordi@rutgers.edu" style="color:#fff">evan.biordi@rutgers.edu</a></p>
+              <p><a href="https://linkedin.com/in/evanbiordi" target="_blank" style="color:#fff">linkedin.com/in/evanbiordi</a></p>
+            </header>
+
+            <!-- ── EDUCATION ── -->
+            <section>
+              <h2>education</h2>
+              <ul>
+                <li>
+                  <sup>expected 2028</sup>
+                  rutgers university, school of engineering — <em>b.s. electrical &amp; computer engineering</em>
+                  <span class="sub">gpa 3.64, dean's list: fall 2024, spring 2025, fall 2025</span>
+                  <span class="sub">coursework: digital logic design, principles of ee i &amp; ii, computer architecture</span>
+                </li>
+              </ul>
+            </section>
+
+            <!-- ── WORK EXPERIENCE ── -->
+            <section>
+              <h2>work experience</h2>
+              <ul>
+                <li>
+                  <sup>2025</sup>
+                  rutgers oit — <em>level 2 specialist &amp; after hours consultant</em>
+                  <span class="sub">servicenow, grafana, incident escalation across rsdm &amp; rwjms, 12+ tickets/hr</span>
+                </li>
+                <li>
+                  <sup>2023</sup>
+                  wawa — <em>customer service &amp; fuel associate</em>
+                </li>
+                <li>
+                  also: rutgers soe eof tutor, shoprite cashier
+                </li>
+              </ul>
+            </section>
+
+            <!-- ── PROJECTS ── -->
+            <section>
+              <h2>projects</h2>
+              <ul>
+                <li>
+                  <sup>2025</sup>
+                  custom mp3 player
+                  <span class="sub">stm32, dfplayer, oled display, prototype pcb, usb-c charging</span>
+                </li>
+                <li>
+                  <sup>2025</sup>
+                  custom gamecube controller mod
+                  <span class="sub">phobgcc motherboard, hall effect sensors, drift &amp; snapback elimination</span>
+                </li>
+                <li>
+                  <sup>2024</sup>
+                  infinite scrolling asteroid dodging game
+                  <span class="sub">unity / c#, procedural generation, dynamic difficulty, persistent high scores</span>
+                </li>
+              </ul>
+            </section>
+
+            <!-- ── SKILLS ── -->
+            <section>
+              <h2>skills &amp; tools</h2>
+              <div class="skills-wrap">
+                <span class="cat">languages</span>
+                c#, java, python, matlab
+
+                <span class="cat">hardware</span>
+                soldering, circuit analysis, digital logic, embedded systems, analog electronics, hardware debugging
+
+                <span class="cat">software</span>
+                ltspice, vivado, kicad, onshape, unity, linux (arch/mint), grafana, servicenow, microsoft 365
+              </div>
+            </section>
+
+            <!-- ── FOOTER ── -->
+            <footer>evanbiordi.com</footer>
+
+          </div><!-- end .content -->
+        </div><!-- end #stripCenter -->
+      </div>
+    </div><!-- end #centerFold -->
+
+    <!-- BOTTOM GHOST PANEL (below the fold, rotated away) -->
+    <div class="fold foldBottom">
+      <div class="foldAlign">
+        <div class="strip" id="stripBottom"></div>
+      </div>
+    </div>
+
+  </div><!-- end .wrapper3d -->
+</div><!-- end .all -->
+
+
+<script>
+  // ============================================================
+  //  GRAB ELEMENTS
+  //  document.getElementById finds an HTML element by its id="..."
+  // ============================================================
+  const centerFold  = document.getElementById('centerFold');
+  const mainContent = document.getElementById('mainContent');
+  const stripCenter = document.getElementById('stripCenter');
+  const stripTop    = document.getElementById('stripTop');
+  const stripBottom = document.getElementById('stripBottom');
+
+  // ============================================================
+  //  CLONE CONTENT INTO GHOST PANELS
+  //  cloneNode(true) copies the element and all its children.
+  //  We put the same content in all three panels so they line
+  //  up seamlessly at the fold edges.
+  // ============================================================
+  stripTop.appendChild(mainContent.cloneNode(true));
+  stripBottom.appendChild(mainContent.cloneNode(true));
+
+  // All three strips — we'll move them together every frame
+  const allStrips = [stripTop, stripCenter, stripBottom];
+
+  // ============================================================
+  //  SET BODY HEIGHT
+  //  The browser's native scroll range = bodyHeight - windowHeight.
+  //  We want to scroll exactly (contentHeight - foldHeight) px,
+  //  so: bodyHeight = (contentHeight - foldHeight) + windowHeight
+  // ============================================================
+  function resize() {
+    const contentH  = mainContent.scrollHeight;  // total height of resume
+    const foldH     = centerFold.clientHeight;   // visible window (80vh)
+    const scrollable = contentH - foldH;         // how far we need to scroll
+    document.body.style.height = (scrollable + window.innerHeight) + 'px';
+  }
+
+  // ============================================================
+  //  ANIMATION LOOP
+  //  requestAnimationFrame runs this function every frame (~60fps).
+  //  Each frame we read window.scrollY (how far user has scrolled)
+  //  and apply that as a negative translateY to all three strips,
+  //  making the content move upward as you scroll down.
+  // ============================================================
+  function loop() {
+    const scrollY = window.scrollY || 0;
+    const translate = `translateY(${-scrollY}px)`;
+    allStrips.forEach(strip => {
+      strip.style.transform = translate;
+    });
+    requestAnimationFrame(loop); // schedule the next frame
+  }
+
+  // ============================================================
+  //  START
+  //  Wait one frame so the browser has finished laying out the
+  //  page before we measure heights and start the loop.
+  // ============================================================
+  window.addEventListener('resize', resize);
+  requestAnimationFrame(() => {
+    resize();
+    loop();
+  });
+</script>
+
+</body>
+</html>
